@@ -1,6 +1,7 @@
 from typing import List
 
 from app.config import DEFAULT_CURRENCY, TAX_RATE
+from app.events import emit
 from app.models import LineItem, Order, Payment
 from app.jobs import enqueue_receipt_email
 
@@ -18,5 +19,6 @@ def create_order(order_id: str, user_id: str, items: List[LineItem]) -> Order:
 
 def charge_payment(order: Order) -> Payment:
     payment = Payment(order_id=order.order_id, amount_cents=order.total_cents, currency=DEFAULT_CURRENCY)
+    emit("payment_charged", {"order_id": order.order_id, "amount_cents": order.total_cents})
     enqueue_receipt_email(order.order_id)
     return payment
